@@ -1,0 +1,21 @@
+GUÍA DE INSTALACIÓN Y USO
+App PWA VR Newton: Inercia Estable
+Cuaderno 3: Física Viva
+
+1. Abre el enlace de GitHub Pages desde el celular.
+2. En Android, usa preferentemente Chrome.
+3. En iPhone o iPad, usa Safari.
+4. Presiona Entrar al laboratorio.
+5. Permite el uso de sensores si el navegador lo solicita.
+6. Presiona Modo lentes.
+7. Mira al frente y presiona Calibrar vista.
+8. Coloca el celular en horizontal dentro de los lentes VR.
+9. Si la imagen tiembla, sube el valor de Suavizado.
+10. Si todavía molesta, presiona Bloquear vista por unos segundos y luego Desbloquear vista.
+
+Para instalar como app:
+- Android: menú de Chrome → Agregar a pantalla principal o Instalar app.
+- iPhone: botón Compartir de Safari → Agregar a pantalla de inicio.
+
+Nota importante:
+Esta es una PWA, no una app nativa de Play Store o App Store. Sin embargo, funciona como app instalable y puede alojarse en GitHub Pages.

@@ -1,0 +1,22 @@
+{
+  "name": "App PWA VR Newton: Inercia Estable",
+  "short_name": "VR Newton",
+  "description": "Laboratorio VR estable sobre la Primera Ley de Newton para el Cuaderno 3 Física Viva.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#061522",
+  "theme_color": "#0B4F9C",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

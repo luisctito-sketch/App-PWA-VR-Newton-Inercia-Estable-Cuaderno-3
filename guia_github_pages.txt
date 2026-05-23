@@ -1,0 +1,30 @@
+GUÍA PARA SUBIR A GITHUB PAGES
+
+Nombre sugerido del repositorio:
+App-PWA-VR-Newton-Inercia-Estable-Cuaderno-3
+
+Archivos que debes subir:
+- index.html
+- manifest.json
+- service-worker.js
+- icon-192.png
+- icon-512.png
+- README.md
+- guia_instalacion_y_uso.txt
+- guia_github_pages.txt
+- preview_App_PWA_VR_Newton_Inercia_Estable.jpg
+- carpeta assets con Educcartito.png
+
+Pasos:
+1. Entra a GitHub.
+2. Crea un repositorio público con el nombre sugerido.
+3. Presiona Add file → Upload files.
+4. Sube todos los archivos y la carpeta assets.
+5. Presiona Commit changes.
+6. Entra a Settings → Pages.
+7. Selecciona Deploy from a branch.
+8. Selecciona main y / root.
+9. Presiona Save.
+10. Espera a que GitHub entregue la URL.
+
+Cuando tengas la URL final, puedes crear un QR para el Cuaderno 3.

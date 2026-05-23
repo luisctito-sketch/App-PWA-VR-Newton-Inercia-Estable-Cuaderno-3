@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="es-BO">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <meta name="theme-color" content="#0B4F9C" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="VR Newton" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>App VR Newton: Inercia Estable</title>
+
+  <style>
+    :root{
+      --azul:#0B4F9C;
+      --verde:#1E9E57;
+      --rojo:#E53935;
+      --amarillo:#F9C846;
+      --texto:#102A43;
+      --panel:rgba(255,255,255,.94);
+      --borde:#D7E7F8;
+    }
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;width:100%;height:100%;overflow:hidden;
+      font-family:Arial,Helvetica,sans-serif;
+      background:#061522;color:var(--texto);
+      touch-action:none;
+    }
+    canvas{display:block}
+    #intro{
+      position:fixed;inset:0;z-index:50;display:grid;place-items:center;
+      padding:22px;text-align:center;color:white;
+      background:linear-gradient(180deg,#061522 0%,#0B4F9C 100%);
+    }
+    #intro .box{
+      width:min(900px,94vw);
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,.28);
+      border-radius:30px;
+      padding:24px;
+      box-shadow:0 18px 45px rgba(0,0,0,.30);
+    }
+    #intro h1{margin:0 0 10px;font-size:clamp(1.55rem,5vw,2.55rem);line-height:1.1}
+    #intro p{margin:10px auto;max-width:760px;line-height:1.43;font-size:clamp(1rem,3.3vw,1.15rem)}
+    .intro-buttons{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+    button{
+      border:0;border-radius:16px;padding:12px 16px;font-weight:bold;font-size:1rem;
+      cursor:pointer;box-shadow:0 7px 20px rgba(0,0,0,.24);
+    }
+    #btnEnter{background:var(--amarillo);color:#102A43}
+    #btnHelp{background:#FFFFFF;color:#0B4F9C}
+    #hud{
+      position:fixed;left:10px;right:10px;top:10px;z-index:20;
+      display:flex;justify-content:center;gap:8px;flex-wrap:wrap;
+      pointer-events:none;
+    }
+    #hud span{
+      background:rgba(255,255,255,.93);
+      color:#0B4F9C;border:1px solid #D7E7F8;border-radius:999px;
+      padding:8px 12px;font-size:13px;font-weight:bold;
+      box-shadow:0 6px 16px rgba(0,0,0,.20);
+    }
+    #controls{
+      position:fixed;left:10px;right:10px;bottom:10px;z-index:30;
+      display:grid;grid-template-columns:repeat(5,auto);gap:8px;justify-content:center;align-items:center;
+    }
+    #controls button{font-size:13px;padding:10px 12px}
+    #btnVR{background:var(--verde);color:white}
+    #btnRun{background:var(--azul);color:white}
+    #btnCalibrate{background:var(--amarillo);color:#102A43}
+    #btnLock{background:#FFFFFF;color:#0B4F9C}
+    #btnInstall{background:#EAF6FF;color:#0B4F9C;border:1px solid #BFD9F2;display:none}
+    .slider{
+      background:rgba(255,255,255,.94);border:1px solid #D7E7F8;border-radius:16px;
+      padding:7px 10px;display:flex;align-items:center;gap:8px;min-width:190px;
+      box-shadow:0 6px 16px rgba(0,0,0,.20);
+      font-size:13px;font-weight:bold;color:#0B4F9C;
+    }
+    .slider input{width:90px;accent-color:#0B4F9C}
+    #toast{
+      position:fixed;left:50%;transform:translateX(-50%);
+      top:62px;z-index:35;background:rgba(16,42,67,.92);color:white;
+      padding:10px 14px;border-radius:16px;font-weight:bold;font-size:14px;
+      display:none;max-width:92vw;text-align:center;
+    }
+    #helpPanel{
+      position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+      width:min(820px,92vw);z-index:60;display:none;
+      background:white;border:1px solid #D7E7F8;border-radius:26px;
+      padding:22px;color:#102A43;box-shadow:0 20px 70px rgba(0,0,0,.35);
+      line-height:1.42;
+    }
+    #helpPanel h2{margin:0 0 8px;color:#0B4F9C}
+    #helpPanel p{margin:9px 0}
+    #closeHelp{background:#0B4F9C;color:white;margin-top:10px}
+    @media (max-width:720px){
+      #controls{grid-template-columns:repeat(2,auto)}
+      #controls button{font-size:12px}
+      .slider{grid-column:1 / -1;justify-content:center;min-width:unset}
+      #hud span{font-size:12px}
+    }
+  </style>
+</head>
+
+<body>
+  <div id="intro">
+    <div class="box">
+      <h1>App PWA VR de Newton</h1>
+      <p><strong>Primera Ley: inercia y rozamiento</strong></p>
+      <p>Esta versión usa modo lentes con pantalla dividida y giroscopio suavizado. Puedes mirar arriba, abajo y a los costados, pero con reducción del temblor molesto del celular.</p>
+      <p>En iPhone o iPad, permite el acceso a sensores cuando el navegador lo solicite. En Android, abre desde Chrome.</p>
+      <div class="intro-buttons">
+        <button id="btnEnter">Entrar al laboratorio</button>
+        <button id="btnHelp">Ver instrucciones</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="helpPanel">
+    <h2>Cómo usar la app VR</h2>
+    <p><strong>1.</strong> Abre este enlace desde el celular.</p>
+    <p><strong>2.</strong> Presiona “Entrar al laboratorio”.</p>
+    <p><strong>3.</strong> Presiona “Modo lentes”. La pantalla se divide en dos ojos.</p>
+    <p><strong>4.</strong> Mira al frente y presiona “Calibrar vista”.</p>
+    <p><strong>5.</strong> Coloca el celular en horizontal dentro de los lentes VR.</p>
+    <p><strong>6.</strong> Ajusta “Suavizado” si la imagen tiembla. Un valor alto reduce la vibración.</p>
+    <p>También puedes instalarla como app usando “Agregar a pantalla de inicio”.</p>
+    <button id="closeHelp">Cerrar</button>
+  </div>
+
+  <div id="hud">
+    <span id="modeLabel">Modo normal</span>
+    <span id="sensorLabel">Sensores: esperando</span>
+    <span id="experimentLabel">Experimento: listo</span>
+  </div>
+
+  <div id="toast"></div>
+
+  <div id="controls">
+    <button id="btnVR">Modo lentes</button>
+    <button id="btnRun">Iniciar experimento</button>
+    <button id="btnCalibrate">Calibrar vista</button>
+    <button id="btnLock">Bloquear vista</button>
+    <button id="btnInstall">Instalar app</button>
+    <label class="slider">Suavizado
+      <input id="smoothSlider" type="range" min="0.03" max="0.25" step="0.01" value="0.08">
+      <span id="smoothValue">0.08</span>
+    </label>
+  </div>
+
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+    import { StereoEffect } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/effects/StereoEffect.js";
+
+    const state = {
+      vrMode:false,
+      sensors:false,
+      locked:false,
+      experimentRunning:false,
+      autoLoop:true,
+      target:{yaw:0,pitch:0,roll:0},
+      smooth:{yaw:0,pitch:0,roll:0},
+      offset:{yaw:0,pitch:0,roll:0},
+      smoothing:0.08,
+      deadband:0.0012,
+      startTime:0,
+      nextAuto:0,
+      yawMouse:0,
+      pitchMouse:-0.15,
+      mouseDown:false,
+      deferredPrompt:null
+    };
+
+    const modeLabel = document.getElementById("modeLabel");
+    const sensorLabel = document.getElementById("sensorLabel");
+    const experimentLabel = document.getElementById("experimentLabel");
+    const toast = document.getElementById("toast");
+
+    function showToast(msg, time=2200){
+      toast.textContent = msg;
+      toast.style.display = "block";
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(()=>toast.style.display="none", time);
+    }
+
+    // Registro PWA
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", ()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
+    }
+    window.addEventListener("beforeinstallprompt", (e)=>{
+      e.preventDefault();
+      state.deferredPrompt = e;
+      document.getElementById("btnInstall").style.display = "inline-block";
+    });
+
+    // Escena
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xDDF4FF);
+
+    const camera = new THREE.PerspectiveCamera(78, window.innerWidth/window.innerHeight, 0.01, 200);
+    camera.position.set(0, 1.55, 5.4);
+
+    const renderer = new THREE.WebGLRenderer({antialias:true, alpha:false});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    document.body.appendChild(renderer.domElement);
+
+    const effect = new StereoEffect(renderer);
+    effect.setEyeSeparation(0.065);
+    effect.setSize(window.innerWidth, window.innerHeight);
+
+    // Luces
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x466070, 2.2));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.1);
+    dir.position.set(-3,6,4);
+    scene.add(dir);
+
+    // Piso
+    const floor = new THREE.Mesh(
+      new THREE.PlaneGeometry(24, 24),
+      new THREE.MeshStandardMaterial({color:0xBFD7EA, roughness:0.9})
+    );
+    floor.rotation.x = -Math.PI/2;
+    floor.position.y = -0.02;
+    scene.add(floor);
+
+    const grid = new THREE.GridHelper(24, 24, 0x8FB8D8, 0xC7DCEB);
+    grid.position.y = 0.005;
+    scene.add(grid);
+
+    // Paredes de laboratorio
+    const wallMat = new THREE.MeshStandardMaterial({color:0xF5FAFF, roughness:0.85});
+    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(24,9), wallMat);
+    backWall.position.set(0,4,-7);
+    scene.add(backWall);
+    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(24,9), wallMat);
+    leftWall.position.set(-12,4,0);
+    leftWall.rotation.y = Math.PI/2;
+    scene.add(leftWall);
+    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(24,9), wallMat);
+    rightWall.position.set(12,4,0);
+    rightWall.rotation.y = -Math.PI/2;
+    scene.add(rightWall);
+
+    function roundedBox(w,h,d,color){
+      const geo = new THREE.BoxGeometry(w,h,d);
+      const mat = new THREE.MeshStandardMaterial({color, roughness:0.75});
+      return new THREE.Mesh(geo,mat);
+    }
+
+    // Mesa
+    const table = roundedBox(9.3,0.25,3.9,0xD1A56B);
+    table.position.set(0,0.22,-0.7);
+    scene.add(table);
+
+    // Carriles
+    const smoothTrack = roundedBox(7.7,0.08,0.62,0x99D9FF);
+    smoothTrack.position.set(0,0.43,-1.35);
+    scene.add(smoothTrack);
+
+    const roughTrack = roundedBox(7.7,0.08,0.62,0xA96937);
+    roughTrack.position.set(0,0.43,0.25);
+    scene.add(roughTrack);
+
+    // Bordes de carriles
+    function rail(z, color){
+      const r1 = roundedBox(7.7,0.18,0.06,color); r1.position.set(0,0.57,z-0.34); scene.add(r1);
+      const r2 = roundedBox(7.7,0.18,0.06,color); r2.position.set(0,0.57,z+0.34); scene.add(r2);
+    }
+    rail(-1.35,0x24567A);
+    rail(0.25,0x5D3217);
+
+    // Rugosidad
+    for(let i=0;i<36;i++){
+      const bump = roundedBox(0.08,0.045,0.10,0x7A3F00);
+      bump.position.set(-3.55+i*0.21,0.51,0.08+(i%2)*0.33);
+      scene.add(bump);
+    }
+
+    // Bolas
+    const ballSmooth = new THREE.Mesh(
+      new THREE.SphereGeometry(0.20,32,16),
+      new THREE.MeshStandardMaterial({color:0x1E88E5, roughness:0.4})
+    );
+    const ballRough = new THREE.Mesh(
+      new THREE.SphereGeometry(0.20,32,16),
+      new THREE.MeshStandardMaterial({color:0xE67825, roughness:0.6})
+    );
+    scene.add(ballSmooth, ballRough);
+
+    // Marcadores inicio/fin
+    for(const z of [-1.35,0.25]){
+      const start = roundedBox(0.055,0.36,0.72,0x1E9E57);
+      start.position.set(-3.45,0.69,z); scene.add(start);
+      const finish = roundedBox(0.055,0.36,0.72,0xE53935);
+      finish.position.set(3.45,0.69,z); scene.add(finish);
+    }
+
+    // Flechas de impulso
+    function makeArrow(color=0x1E9E57){
+      const group = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,0.55,18), new THREE.MeshStandardMaterial({color}));
+      body.rotation.z = Math.PI/2;
+      const head = new THREE.Mesh(new THREE.ConeGeometry(0.12,0.30,24), new THREE.MeshStandardMaterial({color}));
+      head.rotation.z = -Math.PI/2;
+      head.position.x = 0.43;
+      group.add(body,head);
+      return group;
+    }
+    const arrow1 = makeArrow(); arrow1.position.set(-3.15,0.82,-1.35); scene.add(arrow1);
+    const arrow2 = makeArrow(); arrow2.position.set(-3.15,0.82,0.25); scene.add(arrow2);
+
+    // Textos 3D con canvas
+    function makeLabel(text, w=3.2, h=0.55, color="#0B4F9C", bg="rgba(255,255,255,0.92)", size=58){
+      const canvas = document.createElement("canvas");
+      canvas.width = 1024;
+      canvas.height = 256;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = bg;
+      roundRect(ctx, 10, 10, 1004, 236, 42);
+      ctx.fill();
+      ctx.font = `bold ${size}px Arial`;
+      ctx.fillStyle = color;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const lines = text.split("\n");
+      lines.forEach((ln,i)=>ctx.fillText(ln, 512, 128 + (i-(lines.length-1)/2)*(size+12)));
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({map:tex, transparent:true}));
+      return mesh;
+    }
+    function roundRect(ctx,x,y,w,h,r){
+      ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+      ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+      ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+    }
+
+    const titlePanel = makeLabel("Laboratorio VR de Newton\nInercia y rozamiento", 4.6, 1.05, "#0B4F9C", "rgba(255,255,255,0.94)", 52);
+    titlePanel.position.set(0,2.95,-3.1);
+    scene.add(titlePanel);
+
+    const labelSmooth = makeLabel("SUPERFICIE LISA", 2.1, 0.38, "#0B4F9C", "rgba(255,255,255,0.92)", 58);
+    labelSmooth.position.set(-2.65,1.16,-2.05);
+    scene.add(labelSmooth);
+    const labelRough = makeLabel("SUPERFICIE RUGOSA", 2.3, 0.38, "#7A3F00", "rgba(255,255,255,0.92)", 56);
+    labelRough.position.set(-2.62,1.16,0.95);
+    scene.add(labelRough);
+
+    const conclusionPanel = makeLabel("Mismo impulso inicial.\nEl rozamiento cambia la distancia.", 4.9, 0.90, "#102A43", "rgba(255,248,228,0.95)", 50);
+    conclusionPanel.position.set(0,1.75,2.4);
+    conclusionPanel.rotation.x = -0.05;
+    scene.add(conclusionPanel);
+
+    // Educcartito como sprite/plane
+    const loader = new THREE.TextureLoader();
+    loader.load("assets/Educcartito.png", tex=>{
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const eduMat = new THREE.MeshBasicMaterial({map:tex, transparent:true, side:THREE.DoubleSide});
+      const eduPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.05,1.52), eduMat);
+      eduPlane.position.set(4.15,1.45,0.85);
+      eduPlane.rotation.y = -0.55;
+      scene.add(eduPlane);
+      const eduText = makeLabel("Educcartito:\nobserva, compara\ny explica.", 2.1,0.78,"#0B4F9C","rgba(255,255,255,0.94)",44);
+      eduText.position.set(3.35,2.55,-0.40);
+      eduText.rotation.y = -0.35;
+      scene.add(eduText);
+    });
+
+    // Elementos alrededor para mirar arriba/costados
+    const ceilingSign = makeLabel("Mira arriba:\nla física también está en tu cuerpo", 3.6,0.85,"#0B4F9C","rgba(255,255,255,0.92)",44);
+    ceilingSign.position.set(0,4.35,1.2);
+    ceilingSign.rotation.x = Math.PI/2;
+    scene.add(ceilingSign);
+
+    const leftInfo = makeLabel("Primera Ley:\nun cuerpo conserva su estado\nsi no actúa una fuerza neta.", 3.7,1.15,"#102A43","rgba(255,255,255,0.92)",38);
+    leftInfo.position.set(-6.6,2.2,-0.9);
+    leftInfo.rotation.y = Math.PI/2;
+    scene.add(leftInfo);
+
+    const rightInfo = makeLabel("Pregunta científica:\n¿qué fuerza detiene\nel movimiento?", 3.4,1.0,"#102A43","rgba(255,255,255,0.92)",42);
+    rightInfo.position.set(6.6,2.2,-0.8);
+    rightInfo.rotation.y = -Math.PI/2;
+    scene.add(rightInfo);
+
+    // Animación física
+    const startX = -3.45;
+    const maxX = 3.45;
+    const v0 = 2.5;
+    const muL = 0.08;
+    const muR = 0.32;
+    const scale = 1.72;
+
+    function stopTime(mu){ return v0/(mu*9.81); }
+    function disp(mu,t){
+      const ts = stopTime(mu);
+      const tt = Math.min(t,ts);
+      return Math.max(0, v0*tt - 0.5*mu*9.81*tt*tt);
+    }
+    function setBalls(mL=0,mR=0){
+      ballSmooth.position.set(startX+Math.min(mL*scale, maxX-startX), 0.73, -1.35);
+      ballRough.position.set(startX+Math.min(mR*scale, maxX-startX), 0.73, 0.25);
+      ballSmooth.rotation.z = -mL*3.5;
+      ballRough.rotation.z = -mR*3.5;
+    }
+    setBalls(0,0);
+
+    function runExperiment(){
+      state.experimentRunning = true;
+      state.startTime = performance.now();
+      experimentLabel.textContent = "Experimento: en marcha";
+      setBalls(0,0);
+    }
+
+    function updateExperiment(now){
+      if(state.experimentRunning){
+        const t = (now - state.startTime)/1000;
+        const dL = disp(muL,t);
+        const dR = disp(muR,t);
+        setBalls(dL,dR);
+        const tEnd = Math.max(stopTime(muL), stopTime(muR));
+        if(t > tEnd + 0.4){
+          state.experimentRunning = false;
+          state.nextAuto = now + 2800;
+          experimentLabel.textContent = "Resultado: la superficie lisa llega más lejos";
+        }
+      } else if(state.autoLoop && now > state.nextAuto){
+        runExperiment();
+      }
+    }
+
+    // Sensores y orientación estabilizada
+    function degToRad(d){ return d*Math.PI/180; }
+    function wrapPi(a){
+      while(a > Math.PI) a -= 2*Math.PI;
+      while(a < -Math.PI) a += 2*Math.PI;
+      return a;
+    }
+
+    function handleOrientation(e){
+      if(state.locked) return;
+      const alpha = e.alpha ?? 0; // z
+      const beta = e.beta ?? 0;   // x, -180 a 180
+      const gamma = e.gamma ?? 0; // y, -90 a 90
+
+      // Mapeo práctico para teléfono en horizontal dentro de visor.
+      // yaw usa alpha; pitch usa beta con corrección; roll usa gamma reducido.
+      let yaw = degToRad(alpha);
+      let pitch = degToRad(beta - 90);
+      let roll = degToRad(gamma) * 0.12;
+
+      state.target.yaw = yaw;
+      state.target.pitch = THREE.MathUtils.clamp(pitch, -1.15, 1.15);
+      state.target.roll = THREE.MathUtils.clamp(roll, -0.22, 0.22);
+      state.sensors = true;
+      sensorLabel.textContent = "Sensores: activos";
+    }
+
+    async function requestSensors(){
+      try{
+        if (typeof DeviceOrientationEvent !== "undefined" &&
+            typeof DeviceOrientationEvent.requestPermission === "function") {
+          const permission = await DeviceOrientationEvent.requestPermission();
+          if(permission !== "granted"){
+            sensorLabel.textContent = "Sensores: permiso denegado";
+            showToast("No se concedió permiso de sensores. Puedes usar modo normal con el dedo.");
+            return;
+          }
+        }
+        window.addEventListener("deviceorientation", handleOrientation, true);
+        sensorLabel.textContent = "Sensores: esperando movimiento";
+      }catch(err){
+        sensorLabel.textContent = "Sensores: no disponibles";
+        showToast("El navegador no permitió usar el giroscopio.");
+      }
+    }
+
+    function calibrate(){
+      state.offset.yaw = state.target.yaw;
+      state.offset.pitch = state.target.pitch;
+      state.offset.roll = state.target.roll;
+      state.smooth.yaw = 0;
+      state.smooth.pitch = 0;
+      state.smooth.roll = 0;
+      showToast("Vista calibrada. Mira al frente y coloca el celular en los lentes.");
+    }
+
+    function updateCamera(){
+      let yaw,pitch,roll;
+      if(state.sensors && state.vrMode){
+        let ty = wrapPi(state.target.yaw - state.offset.yaw);
+        let tp = state.target.pitch - state.offset.pitch;
+        let tr = state.target.roll - state.offset.roll;
+
+        // Zona muerta para vibraciones pequeñas
+        if(Math.abs(ty - state.smooth.yaw) < state.deadband) ty = state.smooth.yaw;
+        if(Math.abs(tp - state.smooth.pitch) < state.deadband) tp = state.smooth.pitch;
+        if(Math.abs(tr - state.smooth.roll) < state.deadband) tr = state.smooth.roll;
+
+        // Suavizado exponencial. Más alto = responde más rápido, más bajo = más estable.
+        const s = state.smoothing;
+        state.smooth.yaw = wrapPi(state.smooth.yaw + wrapPi(ty - state.smooth.yaw) * s);
+        state.smooth.pitch += (tp - state.smooth.pitch) * s;
+        state.smooth.roll += (tr - state.smooth.roll) * s;
+
+        yaw = state.smooth.yaw;
+        pitch = THREE.MathUtils.clamp(state.smooth.pitch, -1.05, 1.05);
+        roll = state.smooth.roll;
+      } else {
+        yaw = state.yawMouse;
+        pitch = state.pitchMouse;
+        roll = 0;
+      }
+
+      camera.rotation.set(pitch, yaw, roll, "YXZ");
+    }
+
+    // Mouse/touch para modo sin lentes
+    let lastX=0,lastY=0;
+    renderer.domElement.addEventListener("pointerdown", e=>{
+      state.mouseDown=true; lastX=e.clientX; lastY=e.clientY;
+      renderer.domElement.setPointerCapture(e.pointerId);
+    });
+    renderer.domElement.addEventListener("pointermove", e=>{
+      if(!state.mouseDown || state.vrMode) return;
+      const dx = e.clientX-lastX, dy=e.clientY-lastY;
+      lastX=e.clientX; lastY=e.clientY;
+      state.yawMouse -= dx*0.004;
+      state.pitchMouse -= dy*0.004;
+      state.pitchMouse = THREE.MathUtils.clamp(state.pitchMouse, -1.0, 0.75);
+    });
+    renderer.domElement.addEventListener("pointerup", ()=>state.mouseDown=false);
+
+    // Botones
+    document.getElementById("btnEnter").addEventListener("click", async ()=>{
+      document.getElementById("intro").style.display = "none";
+      await requestSensors();
+      showToast("Laboratorio iniciado. Presiona Modo lentes para usar visor VR.");
+      state.nextAuto = performance.now()+1500;
+    });
+    document.getElementById("btnHelp").addEventListener("click", ()=>{
+      document.getElementById("helpPanel").style.display = "block";
+    });
+    document.getElementById("closeHelp").addEventListener("click", ()=>{
+      document.getElementById("helpPanel").style.display = "none";
+    });
+    document.getElementById("btnVR").addEventListener("click", async ()=>{
+      state.vrMode = !state.vrMode;
+      document.getElementById("btnVR").textContent = state.vrMode ? "Salir de lentes" : "Modo lentes";
+      modeLabel.textContent = state.vrMode ? "Modo lentes VR estable" : "Modo normal";
+      if(state.vrMode){
+        await requestSensors();
+        calibrate();
+        try{ if(screen.orientation?.lock) await screen.orientation.lock("landscape"); }catch(e){}
+      } else {
+        try{ if(screen.orientation?.unlock) screen.orientation.unlock(); }catch(e){}
+      }
+      onResize();
+    });
+    document.getElementById("btnRun").addEventListener("click", runExperiment);
+    document.getElementById("btnCalibrate").addEventListener("click", calibrate);
+    document.getElementById("btnLock").addEventListener("click", ()=>{
+      state.locked = !state.locked;
+      document.getElementById("btnLock").textContent = state.locked ? "Desbloquear vista" : "Bloquear vista";
+      showToast(state.locked ? "Vista bloqueada para evitar vibración." : "Vista desbloqueada.");
+    });
+    document.getElementById("btnInstall").addEventListener("click", async ()=>{
+      if(!state.deferredPrompt) return;
+      state.deferredPrompt.prompt();
+      await state.deferredPrompt.userChoice;
+      state.deferredPrompt = null;
+      document.getElementById("btnInstall").style.display = "none";
+    });
+    document.getElementById("smoothSlider").addEventListener("input", e=>{
+      state.smoothing = parseFloat(e.target.value);
+      document.getElementById("smoothValue").textContent = state.smoothing.toFixed(2);
+    });
+
+    function onResize(){
+      camera.aspect = window.innerWidth/window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      effect.setSize(window.innerWidth, window.innerHeight);
+    }
+    window.addEventListener("resize", onResize);
+
+    function animate(now){
+      requestAnimationFrame(animate);
+      updateExperiment(now);
+      updateCamera();
+
+      // Educcartito y paneles orientados parcialmente al usuario
+      // render
+      if(state.vrMode){
+        effect.render(scene, camera);
+      } else {
+        renderer.render(scene, camera);
+      }
+    }
+    animate(performance.now());
+  </script>
+</body>
+</html>
