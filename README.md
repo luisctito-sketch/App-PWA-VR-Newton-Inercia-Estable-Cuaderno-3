@@ -1,28 +1,18 @@
-# App PWA VR Newton: Inercia Estable
-## Cuaderno 3: Física Viva
+# App PWA VR Newton: Inercia Estable — versión corregida
 
-Esta carpeta contiene una aplicación PWA instalable para celular. Permite vivir el laboratorio de la Primera Ley de Newton en modo VR con lentes, pero reduciendo la vibración mediante:
+Esta versión corrige el problema de botones que no funcionaban en GitHub Pages.
 
-- suavizado del giroscopio;
-- zona muerta para microtemblores;
-- botón Calibrar vista;
-- botón Bloquear vista;
-- control manual de suavizado;
-- modo lentes con pantalla dividida;
-- modo normal sin lentes.
+Causa probable del fallo anterior:
+el archivo index.html usaba importaciones externas de módulos JavaScript. Si una importación falla, todo el script deja de ejecutarse y los botones quedan visibles, pero sin respuesta.
 
-## Archivos
+Esta versión no usa Three.js ni dependencias externas. Todo está hecho con Canvas y JavaScript interno.
 
+Archivos:
 - index.html
 - manifest.json
 - service-worker.js
 - icon-192.png
 - icon-512.png
 - assets/Educcartito.png
-- preview_App_PWA_VR_Newton_Inercia_Estable.jpg
-- guia_instalacion_y_uso.txt
-- guia_github_pages.txt
-
-## Recomendación
-
-Sube todos los archivos a GitHub Pages. Luego abre el enlace desde el celular y agrega la app a la pantalla de inicio.
+- preview_App_PWA_VR_Newton_CORREGIDA.jpg
+- guia_reemplazo_github.txt

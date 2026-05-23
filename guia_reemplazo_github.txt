@@ -1,0 +1,26 @@
+GUÍA PARA REEMPLAZAR EN GITHUB
+
+Repositorio actual:
+App-PWA-VR-Newton-Inercia-Estable-Cuaderno-3
+
+1. Descarga y descomprime este ZIP.
+2. Entra al repositorio de GitHub.
+3. Presiona Add file → Upload files.
+4. Sube estos archivos:
+   index.html
+   manifest.json
+   service-worker.js
+   icon-192.png
+   icon-512.png
+   README.md
+   guia_reemplazo_github.txt
+   preview_App_PWA_VR_Newton_CORREGIDA.jpg
+5. Presiona Commit changes.
+6. Entra a la carpeta assets.
+7. Sube Educcartito.png.
+8. Presiona Commit changes.
+
+Muy importante:
+Después de subir, abre el enlace y presiona Ctrl + F5 en la computadora o borra caché en el celular.
+Como es una PWA, el service worker puede mantener una versión antigua. Si no cambia, en Chrome ve a:
+Configuración del sitio → Borrar datos.
